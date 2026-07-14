@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
+from utils.ai_model import detect_anomalies
 st.set_page_config(
     page_title="AI Firewall Guardian",
     page_icon="🛡️",
@@ -20,6 +20,7 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
 else:
     df = pd.read_csv("data/firewall_logs.csv")
+    df = detect_anomalies(df)
 
 st.success("Firewall Logs Loaded Successfully")
 
@@ -118,3 +119,28 @@ st.plotly_chart(fig4, use_container_width=True)
 st.divider()
 
 st.info("AI Detection Module Coming Next...")
+st.divider()
+
+st.subheader("🤖 AI Threat Detection")
+
+critical = df[df["threat_level"] == "Critical"]
+high = df[df["threat_level"] == "High"]
+
+c1, c2 = st.columns(2)
+
+c1.metric("Critical Threats", len(critical))
+c2.metric("High Threats", len(high))
+
+st.dataframe(
+    df[
+        [
+            "source_ip",
+            "port",
+            "bytes",
+            "risk_score",
+            "threat_level"
+        ]
+    ],
+    use_container_width=True,
+    hide_index=True
+)
